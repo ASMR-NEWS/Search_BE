@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from crawler import start_crawling
 from sentiment_analysis import analyze_and_map_sentiments
-from summarizer import summarize_text
+from summarizer import summarize_with_sentiment
 
 app = Flask(__name__)
 CORS(app)
@@ -38,7 +38,9 @@ def topic_search():
         # 요약 및 감정 결과 추가
         for i, news in enumerate(news_data):
             news["sentiment"] = mapped_sentiments[i]
-            #news["content_summarized"] = summarize_text(news["content"]) if news.get("content") else ""
+            content = news.get("content", "")
+            sentiment = mapped_sentiments[i]
+            news["content_summarized"] = summarize_with_sentiment(content, sentiment)
 
         # JSON 형식으로 반환
         return jsonify({"news": news_data})
