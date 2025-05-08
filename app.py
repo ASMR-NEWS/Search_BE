@@ -9,8 +9,10 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+print("🔥 Flask 앱 시작됨!")
 @app.route('/topic-search', methods=['POST'])
 def topic_search():
+    print("✅ 요청 도착!")
     try:
         data = request.get_json()
         search_content = data.get('topic')
