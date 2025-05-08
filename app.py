@@ -16,7 +16,7 @@ def topic_search():
     try:
         data = request.get_json()
         search_content = data.get('topic')
-        max_news = 50
+        max_news = 10
 
         if not search_content:
             return jsonify({"error": "검색어를 입력해주세요."}), 400
