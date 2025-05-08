@@ -16,7 +16,9 @@ def topic_search():
     try:
         data = request.get_json()
         search_content = data.get('topic')
-        max_news = 10
+        print(f"[DEBUG] 검색어: {search_content}")
+
+        max_news = 5
 
         if not search_content:
             return jsonify({"error": "검색어를 입력해주세요."}), 400
@@ -24,6 +26,7 @@ def topic_search():
         startday = ["2025.04.01"]
         endday = ["2025.05.07"]
         news_data = start_crawling(search_content, startday, endday, max_news)
+        print(f"[DEBUG] 수집된 뉴스 수: {len(news_data)}")
 
         # 크롤링 결과 없음 예외 처리
         if not news_data:
@@ -31,6 +34,7 @@ def topic_search():
 
         texts = [news.get('title', '') for news in news_data]
         sentiments = analyze_and_map_sentiments(texts)
+        print(f"[DEBUG] 감정 분석 완료")
 
         sentiment_mapping = {
             "POSITIVE": "긍정",
@@ -43,12 +47,17 @@ def topic_search():
         for i, news in enumerate(news_data):
             sentiment = mapped_sentiments[i] if i < len(mapped_sentiments) else "중립"
             content = news.get("content", "")
+            print(f"[DEBUG] 뉴스 {i+1}/{len(news_data)} 요약 시작")
+            summary = summarize_with_sentiment(content, sentiment)
+            print(f"[DEBUG] 뉴스 {i+1} 요약 완료: {summary[:30]}...")
             news["sentiment"] = sentiment
-            news["content_summarized"] = summarize_with_sentiment(content, sentiment)
+            news["content_summarized"] = summary
 
+        print("[DEBUG] 전체 뉴스 요약 완료")    
         return jsonify({"news": news_data})
 
     except Exception as e:
+        print(f"[ERROR] GPT 요약 실패: {e}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 

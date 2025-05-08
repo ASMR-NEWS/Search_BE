@@ -16,7 +16,7 @@ USER_AGENTS = [
 ]
 
 
-def fetch_urls_selenium(query, start_date, end_date, max_news=10):
+def fetch_urls_selenium(query, start_date, end_date, max_news=5):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
@@ -96,7 +96,7 @@ def fetch_news_content_requests(url):
     }
 
 
-def start_crawling(search_content, startdays, enddays, max_news=10):
+def start_crawling(search_content, startdays, enddays, max_news=5):
     all_urls = set()
     for start_day, end_day in zip(startdays, enddays):
         urls = fetch_urls_selenium(search_content, start_day, end_day, max_news)
@@ -116,5 +116,5 @@ def start_crawling(search_content, startdays, enddays, max_news=10):
         print("[ERROR] 'content' 컬럼이 없습니다. 수집 실패.")
         return []
 
-    df_news = df_news[df_news['content'].str.len() > 10]
+    df_news = df_news[df_news['content'].str.len() > 5]
     return df_news.to_dict(orient="records")
