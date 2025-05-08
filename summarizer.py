@@ -1,8 +1,8 @@
 import openai
+import os
 
 # OpenAI API 키 설정
-openai.api_key = "private-key"
-
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 def summarize_with_sentiment(content, sentiment):
     if not content:
