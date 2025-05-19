@@ -27,12 +27,19 @@ def create_app():
 
             startday = ["2025.04.01"]
             endday = ["2025.05.07"]
-            news_data = start_crawling(search_content, startday, endday, max_news)
+            # news_data = start_crawling(...)
+            news_data = [{
+                "title": "샘플 뉴스",
+                "content": "비트코인 가격이 급등했습니다.",
+                "url": "https://example.com",
+                "company": "테스트신문"
+            }]
+
             if not news_data:
                 return jsonify({"error": "크롤링된 뉴스가 없습니다."}), 404
 
             texts = [news.get('title', '') for news in news_data]
-            sentiments = analyze_and_map_sentiments(texts)
+            sentiments = ["중립"] * len(news_data)
             sentiment_mapping = {
                 "POSITIVE": "긍정",
                 "NEGATIVE": "부정",
@@ -43,7 +50,7 @@ def create_app():
             for i, news in enumerate(news_data):
                 sentiment = mapped_sentiments[i] if i < len(mapped_sentiments) else "중립"
                 content = news.get("content", "")
-                summary = summarize_with_sentiment(content, sentiment)
+                summary = content[:80] + "..."  # 그냥 잘라내기
                 news["sentiment"] = sentiment
                 news["content_summarized"] = summary
 
