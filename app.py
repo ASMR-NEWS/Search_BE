@@ -9,6 +9,10 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    return jsonify({"status": "ok"}), 200
+
 print("🔥 Flask 앱 시작됨!")
 @app.route('/topic-search', methods=['POST'])
 def topic_search():
@@ -62,5 +66,9 @@ def topic_search():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(debug=True)
+
+
+# if __name__ == '__main__':
+#     port = int(os.environ.get("PORT", 10000))
+#     app.run(host='0.0.0.0', port=port, debug=True)
