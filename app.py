@@ -28,7 +28,12 @@ def create_app():
             startday = ["2025.04.01"]
             endday = ["2025.05.07"]
             # news_data = start_crawling(...)
-            news_data = start_crawling(search_content, startday, endday, max_news)
+            news_data = [{
+                "title": "샘플 뉴스",
+                "content": "비트코인 가격이 급등했습니다.",
+                "url": "https://example.com",
+                "company": "테스트신문"
+            }]
 
             if not news_data:
                 return jsonify({"error": "크롤링된 뉴스가 없습니다."}), 404
