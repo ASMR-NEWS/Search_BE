@@ -44,7 +44,7 @@ def create_app():
             for i, news in enumerate(news_data):
                 sentiment = mapped_sentiments[i] if i < len(mapped_sentiments) else "중립"
                 content = news.get("content", "")
-                summary = summarize_with_sentiment(content, sentiment)
+                summary = content[:80] + "..."  # 그냥 잘라내기
                 news["sentiment"] = sentiment
                 news["content_summarized"] = summary
 
