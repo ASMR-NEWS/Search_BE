@@ -33,7 +33,7 @@ def create_app():
                 return jsonify({"error": "크롤링된 뉴스가 없습니다."}), 404
 
             texts = [news.get('title', '') for news in news_data]
-            sentiments = ["중립"] * len(news_data)
+            sentiments = analyze_and_map_sentiments(texts)
             sentiment_mapping = {
                 "POSITIVE": "긍정",
                 "NEGATIVE": "부정",
@@ -44,7 +44,7 @@ def create_app():
             for i, news in enumerate(news_data):
                 sentiment = mapped_sentiments[i] if i < len(mapped_sentiments) else "중립"
                 content = news.get("content", "")
-                summary = content[:80] + "..."  # 그냥 잘라내기
+                summary = summarize_with_sentiment(content, sentiment)
                 news["sentiment"] = sentiment
                 news["content_summarized"] = summary
 
