@@ -40,6 +40,7 @@ def fetch_urls_requests(query, start_date, end_date, max_news=5):
                     urls.add(href)
                     if len(urls) >= max_news:
                         break
+            print(f"[DEBUG] 수집된 뉴스 URL: {urls}")
 
         except Exception as e:
             print(f"[ERROR] URL 수집 실패: {e}")
@@ -75,6 +76,9 @@ def fetch_news_content_requests(url):
                 "title": title,
                 "content": content,
             }
+        if content_tag is None:
+            print(f"[WARN] 본문 태그 없음: {url}")
+        
     except Exception as e:
         print(f"[본문 수집 실패] {url} | {e}")
 
@@ -103,6 +107,7 @@ def start_crawling(search_content, startdays, enddays, max_news=5):
     df_news = pd.DataFrame(news_data)
     if "content" not in df_news.columns:
         print("[ERROR] 'content' 컬럼이 없습니다. 수집 실패.")
+        print(df_news.head())  # ← 실제 형태 확인용
         return []
 
     df_news = df_news[df_news['content'].str.len() > 5]
