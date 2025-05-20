@@ -25,8 +25,8 @@ def create_app():
             if not search_content:
                 return jsonify({"error": "검색어를 입력해주세요."}), 400
 
-            startday = ["2025.04.01"]
-            endday = ["2025.05.07"]
+            startday = ["2025.03.01"]
+            endday = ["2025.05.20"]
             # news_data = start_crawling(...)
             news_data = start_crawling(search_content, startday, endday, max_news)
             if not news_data:
