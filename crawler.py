@@ -1,48 +1,36 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
+import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import random
 import time
 from tqdm import tqdm
-import requests
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
 ]
 
-
-def fetch_urls_selenium(query, start_date, end_date, max_news=5):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument(f"user-agent={random.choice(USER_AGENTS)}")
-
-    driver = webdriver.Chrome(options=chrome_options)
+def fetch_urls_requests(query, start_date, end_date, max_news=5):
     urls = set()
+    for start in range(1, 1000, 10):
+        if len(urls) >= max_news:
+            break
 
-    try:
-        for start in tqdm(range(1, 1000, 10), desc="뉴스 URL 수집 중"):
-            if len(urls) >= max_news:
-                break
+        url = (
+            f"https://search.naver.com/search.naver?where=news&query={query}"
+            f"&sm=tab_pge&sort=0&photo=0&field=0&pd=3&ds={start_date}&de={end_date}&start={start}"
+        )
 
-            url = (
-                f"https://search.naver.com/search.naver?where=news&query={query}"
-                f"&sm=tab_pge&sort=0&photo=0&field=0&pd=3&ds={start_date}&de={end_date}&start={start}"
-            )
-            driver.get(url)
+        headers = {
+            "User-Agent": random.choice(USER_AGENTS),
+        }
 
-            # ✅ 페이지 로딩 대기
-            WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "a"))
-            )
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code != 200:
+                continue
 
-            soup = BeautifulSoup(driver.page_source, "html.parser")
+            soup = BeautifulSoup(response.text, "html.parser")
             a_tags = soup.select("a")
 
             for a in a_tags:
@@ -52,11 +40,13 @@ def fetch_urls_selenium(query, start_date, end_date, max_news=5):
                     urls.add(href)
                     if len(urls) >= max_news:
                         break
-    finally:
-        driver.quit()
+
+        except Exception as e:
+            print(f"[ERROR] URL 수집 실패: {e}")
+
+        time.sleep(0.3)
 
     return list(urls)
-
 
 def fetch_news_content_requests(url):
     headers = {
@@ -95,11 +85,10 @@ def fetch_news_content_requests(url):
         "content": "None",
     }
 
-
 def start_crawling(search_content, startdays, enddays, max_news=5):
     all_urls = set()
     for start_day, end_day in zip(startdays, enddays):
-        urls = fetch_urls_selenium(search_content, start_day, end_day, max_news)
+        urls = fetch_urls_requests(search_content, start_day, end_day, max_news)
         all_urls.update(urls)
 
     all_urls = list(all_urls)[:max_news]
