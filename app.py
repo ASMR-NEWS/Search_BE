@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from crawler import start_crawling
-from gpt_sentiment_summary import analyze_and_summarize  # 통합된 GPT 분석 함수
+from crawler import search_news_naver_api
+from gpt_sentiment_summary import analyze_and_summarize
 import traceback
 import os
 
@@ -20,19 +20,19 @@ def create_app():
             search_content = data.get('topic')
             print(f"[DEBUG] 검색어: {search_content}")
 
-            max_news = 15
             if not search_content:
                 return jsonify({"error": "검색어를 입력해주세요."}), 400
 
-            startday = ["2025.03.01"]
-            endday = ["2025.05.20"]
+            max_news = 15
+            start_day = "2025.03.01"
+            end_day = "2025.05.20"
 
-            news_data = start_crawling(search_content, startday, endday, max_news)
+            news_data = search_news_naver_api(search_content, start_day, end_day, max_news)
             if not news_data:
-                return jsonify({"error": "크롤링된 뉴스가 없습니다."}), 404
+                return jsonify({"error": "검색된 뉴스가 없습니다."}), 404
 
-            contents = [news.get('content', '') for news in news_data]
-            analysis_results = analyze_and_summarize(contents)
+            texts = [news.get("content", "") for news in news_data]
+            results = analyze_and_summarize(texts)
 
             sentiment_mapping = {
                 "POSITIVE": "긍정",
@@ -42,9 +42,8 @@ def create_app():
             }
 
             for i, news in enumerate(news_data):
-                result = analysis_results[i]
-                sentiment_kr = sentiment_mapping.get(result["sentiment"], "중립")
-                news["sentiment"] = sentiment_kr
+                result = results[i]
+                news["sentiment"] = sentiment_mapping.get(result["sentiment"], "중립")
                 news["content_summarized"] = result["summary"]
 
             return jsonify({"news": news_data})
@@ -55,7 +54,8 @@ def create_app():
 
     return app
 
-# Render나 gunicorn을 위한 엔트리 포인트
+
+# Render, Gunicorn용 엔트리포인트
 app = create_app()
 
 if __name__ == '__main__':
