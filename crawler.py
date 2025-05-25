@@ -10,7 +10,7 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
 ]
 
-def fetch_urls_requests(query, start_date, end_date, max_news=5):
+def fetch_urls_requests(query, start_date, end_date, max_news=15):
     urls = set()
     for start in range(1, 1000, 10):
         if len(urls) >= max_news:
@@ -89,7 +89,7 @@ def fetch_news_content_requests(url):
         "content": "None",
     }
 
-def start_crawling(search_content, startdays, enddays, max_news=5):
+def start_crawling(search_content, startdays, enddays, max_news=15):
     all_urls = set()
     for start_day, end_day in zip(startdays, enddays):
         urls = fetch_urls_requests(search_content, start_day, end_day, max_news)

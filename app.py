@@ -1,8 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from crawler import start_crawling
-from sentiment_analysis import analyze_and_map_sentiments
-from summarizer import summarize_with_sentiment
+from gpt_sentiment_summary import analyze_and_summarize  # 통합된 GPT 분석 함수
 import traceback
 import os
 
@@ -21,32 +20,32 @@ def create_app():
             search_content = data.get('topic')
             print(f"[DEBUG] 검색어: {search_content}")
 
-            max_news = 5
+            max_news = 15
             if not search_content:
                 return jsonify({"error": "검색어를 입력해주세요."}), 400
 
             startday = ["2025.03.01"]
             endday = ["2025.05.20"]
-            # news_data = start_crawling(...)
+
             news_data = start_crawling(search_content, startday, endday, max_news)
             if not news_data:
                 return jsonify({"error": "크롤링된 뉴스가 없습니다."}), 404
 
-            texts = [news.get('title', '') for news in news_data]
-            sentiments = ["중립"] * len(news_data)
+            contents = [news.get('content', '') for news in news_data]
+            analysis_results = analyze_and_summarize(contents)
+
             sentiment_mapping = {
                 "POSITIVE": "긍정",
                 "NEGATIVE": "부정",
-                "NEUTRAL": "중립"
+                "NEUTRAL": "중립",
+                "ERROR": "분석 실패"
             }
-            mapped_sentiments = [sentiment_mapping.get(s, "중립") for s in sentiments]
 
             for i, news in enumerate(news_data):
-                sentiment = mapped_sentiments[i] if i < len(mapped_sentiments) else "중립"
-                content = news.get("content", "")
-                summary = content[:80] + "..."  # 그냥 잘라내기
-                news["sentiment"] = sentiment
-                news["content_summarized"] = summary
+                result = analysis_results[i]
+                sentiment_kr = sentiment_mapping.get(result["sentiment"], "중립")
+                news["sentiment"] = sentiment_kr
+                news["content_summarized"] = result["summary"]
 
             return jsonify({"news": news_data})
 
@@ -56,7 +55,7 @@ def create_app():
 
     return app
 
-# Render가 gunicorn으로 import할 수 있도록 아래 객체 제공
+# Render나 gunicorn을 위한 엔트리 포인트
 app = create_app()
 
 if __name__ == '__main__':
