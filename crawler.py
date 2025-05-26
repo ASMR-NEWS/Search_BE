@@ -1,9 +1,18 @@
 import requests
 import os
 import time
+import html
+from bs4 import BeautifulSoup
 
 NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
+
+def clean_html_text(text):
+    """HTML 엔티티 디코딩 및 태그 제거"""
+    if not text:
+        return ""
+    text = html.unescape(text)
+    return BeautifulSoup(text, "html.parser").get_text()
 
 def search_news_naver_api(query, start_date, end_date, max_news=15):
     headers = {
@@ -12,7 +21,7 @@ def search_news_naver_api(query, start_date, end_date, max_news=15):
     }
 
     collected = []
-    display = 15  # 한번에 가져올 기사 수 (최대 100, 기본 10)
+    display = 15
     start = 1
 
     while len(collected) < max_news:
@@ -35,16 +44,16 @@ def search_news_naver_api(query, start_date, end_date, max_news=15):
 
         for item in items:
             collected.append({
-                "title": item["title"],
+                "title": clean_html_text(item["title"]),
                 "url": item["link"],
-                "content": item["description"],
+                "content": clean_html_text(item["description"]),
                 "company": item.get("originallink", "Naver"),
             })
             if len(collected) >= max_news:
                 break
 
         start += display
-        time.sleep(0.5)  # Rate limit 회피용
+        time.sleep(0.5)
 
     print(f"[INFO] API로 수집된 뉴스 수: {len(collected)}")
     return collected

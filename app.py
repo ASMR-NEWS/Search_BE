@@ -9,6 +9,10 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
+    @app.route('/', methods=['GET'])
+    def index():
+        return jsonify({"message": "News sentiment API is running"}), 200
+
     @app.route('/ping', methods=['GET'])
     def ping():
         return jsonify({"status": "ok"}), 200
